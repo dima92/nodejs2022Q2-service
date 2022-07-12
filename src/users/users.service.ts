@@ -7,7 +7,7 @@ import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  db: InMemoryDB<User>;
+  private db: InMemoryDB<User>;
 
   constructor() {
     this.db = new InMemoryDB<User>(User);
