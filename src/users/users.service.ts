@@ -1,0 +1,59 @@
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { InMemoryDB } from 'src/db/InMemoryDB';
+import { v4 } from 'uuid';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
+
+@Injectable()
+export class UsersService {
+  db: InMemoryDB<User>;
+
+  constructor() {
+    this.db = new InMemoryDB<User>(User);
+  }
+
+  async create(createUserDto: CreateUserDto) {
+    const data = {
+      id: v4(),
+      ...createUserDto,
+      version: 1,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    return this.db.create(data);
+  }
+
+  findAll() {
+    return this.db.findAll();
+  }
+
+  findOne(id: string) {
+    return this.db.findOne(id);
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.findOne(id);
+
+    if (updateUserDto.oldPassword !== user.password)
+      throw new ForbiddenException({
+        statusCode: 403,
+        message: 'The wrong password was entered',
+      });
+
+    const data = {
+      ...user,
+      password: updateUserDto.newPassword,
+      version: user.version + 1,
+      updatedAt: Date.now(),
+    };
+
+    return this.db.update(id, data);
+  }
+
+  async remove(id: string) {
+    await this.findOne(id);
+    return this.db.remove(id);
+  }
+}
