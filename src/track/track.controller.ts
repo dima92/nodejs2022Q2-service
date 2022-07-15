@@ -8,6 +8,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   Put,
+  NotFoundException,
 } from '@nestjs/common';
 import { TrackService } from './track.service';
 import { CreateTrackDto } from './dto/create-track.dto';
@@ -29,21 +30,32 @@ export class TrackController {
   }
 
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
-    return this.trackService.findOne(id);
+  async findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    const track = await this.trackService.findOne(id);
+
+    if (!track)
+      throw new NotFoundException({
+        statusCode: 404,
+        message: `Artist with this ID was not found`,
+        error: 'Not Found',
+      });
+
+    return track;
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateTrackDto: UpdateTrackDto,
   ) {
+    await this.findOne(id);
     return this.trackService.update(id, updateTrackDto);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+  async remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    await this.findOne(id);
     return this.trackService.remove(id);
   }
 }

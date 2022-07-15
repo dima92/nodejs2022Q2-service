@@ -6,6 +6,7 @@ import { UpdateArtistDto } from './dto/update-artist.dto';
 import { Artist } from './entities/artist.entity';
 import { AlbumService } from '../album/album.service';
 import { TrackService } from '../track/track.service';
+import { FavoritesService } from '../favorites/favorites.service';
 
 @Injectable()
 export class ArtistService {
@@ -16,6 +17,8 @@ export class ArtistService {
     private albumService: AlbumService,
     @Inject(forwardRef(() => TrackService))
     private trackService: TrackService,
+    @Inject(forwardRef(() => FavoritesService))
+    private favoritesService: FavoritesService,
   ) {
     ArtistService.db = new InMemoryDB<Artist>(Artist);
   }
@@ -33,7 +36,7 @@ export class ArtistService {
     return ArtistService.db.findAll();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     return ArtistService.db.findOne(id);
   }
 
@@ -49,7 +52,6 @@ export class ArtistService {
   }
 
   async remove(id: string) {
-    await this.findOne(id);
     const albums = await this.albumService.findAll();
     const tracks = await this.trackService.findAll();
 
@@ -65,6 +67,7 @@ export class ArtistService {
       await this.albumService.update(track.id, { ...track, artistId: null });
     }
 
+    this.favoritesService.removeArtistToFavourites(id);
     return ArtistService.db.remove(id);
   }
 }

@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InMemoryDB } from 'src/db/InMemoryDB';
 import { v4 } from 'uuid';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -29,19 +29,11 @@ export class UserService {
     return this.db.findAll();
   }
 
-  findOne(id: string) {
+  async findOne(id: string) {
     return this.db.findOne(id);
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    const user = await this.findOne(id);
-
-    if (updateUserDto.oldPassword !== user.password)
-      throw new ForbiddenException({
-        statusCode: 403,
-        message: 'The wrong password was entered',
-      });
-
+  async update(id: string, updateUserDto: UpdateUserDto, user: User) {
     const data = {
       ...user,
       password: updateUserDto.newPassword,
@@ -53,7 +45,6 @@ export class UserService {
   }
 
   async remove(id: string) {
-    await this.findOne(id);
     return this.db.remove(id);
   }
 }

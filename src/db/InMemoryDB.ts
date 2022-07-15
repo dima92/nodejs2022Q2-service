@@ -1,5 +1,3 @@
-import { NotFoundException } from '@nestjs/common';
-
 interface InMemoryDBEntity {
   id?: string;
 }
@@ -27,18 +25,11 @@ export class InMemoryDB<T extends InMemoryDBEntity> {
     });
   }
 
-  async findOne(id: string): Promise<T> {
-    return new Promise(async (resolver, reject) => {
+  async findOne(id: string): Promise<T | undefined> {
+    return new Promise(async (resolver) => {
       const foundData = this.db.find((data: T) => data.id === id);
 
-      if (!foundData)
-        reject(
-          new NotFoundException({
-            statusCode: 404,
-            message: `${this.entity.name} with this ID was not found`,
-            error: 'Not Found',
-          }),
-        );
+      if (!foundData) resolver(undefined);
 
       resolver(foundData);
     });

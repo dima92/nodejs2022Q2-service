@@ -8,6 +8,7 @@ import {
   ParseUUIDPipe,
   HttpCode,
   Put,
+  NotFoundException,
 } from '@nestjs/common';
 import { ArtistService } from './artist.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
@@ -29,21 +30,32 @@ export class ArtistController {
   }
 
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
-    return this.artistService.findOne(id);
+  async findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    const artist = await this.artistService.findOne(id);
+
+    if (!artist)
+      throw new NotFoundException({
+        statusCode: 404,
+        message: `Artist with this ID was not found`,
+        error: 'Not Found',
+      });
+
+    return artist;
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateArtistDto: UpdateArtistDto,
   ) {
+    await this.findOne(id);
     return this.artistService.update(id, updateArtistDto);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+  async remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    await this.findOne(id);
     return this.artistService.remove(id);
   }
 }

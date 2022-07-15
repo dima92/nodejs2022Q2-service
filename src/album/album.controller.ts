@@ -8,6 +8,7 @@ import {
   Delete,
   HttpCode,
   ParseUUIDPipe,
+  NotFoundException,
 } from '@nestjs/common';
 import { AlbumService } from './album.service';
 import { CreateAlbumDto } from './dto/create-album.dto';
@@ -30,20 +31,31 @@ export class AlbumController {
 
   @Get(':id')
   async findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
-    return this.albumService.findOne(id);
+    const album = await this.albumService.findOne(id);
+
+    if (!album)
+      throw new NotFoundException({
+        statusCode: 404,
+        message: `Artist with this ID was not found`,
+        error: 'Not Found',
+      });
+
+    return album;
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateAlbumDto: UpdateAlbumDto,
   ) {
+    await this.findOne(id);
     return this.albumService.update(id, updateAlbumDto);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+  async remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    await this.findOne(id);
     return this.albumService.remove(id);
   }
 }

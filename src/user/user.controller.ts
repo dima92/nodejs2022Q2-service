@@ -8,6 +8,8 @@ import {
   Put,
   ParseUUIDPipe,
   HttpCode,
+  NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,35 +17,54 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly usersService: UserService) {}
+  constructor(private readonly userService: UserService) {}
 
   @Post()
   @HttpCode(201)
   create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+    return this.userService.create(createUserDto);
   }
 
   @Get()
   findAll() {
-    return this.usersService.findAll();
+    return this.userService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
-    return this.usersService.findOne(id);
+  async findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    const user = await this.userService.findOne(id);
+
+    if (!user)
+      throw new NotFoundException({
+        statusCode: 404,
+        message: `User with this ID was not found`,
+        error: 'Not Found',
+      });
+
+    return user;
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.update(id, updateUserDto);
+    const user = await this.findOne(id);
+
+    if (updateUserDto.oldPassword !== user.password)
+      throw new ForbiddenException({
+        statusCode: 403,
+        message: 'The wrong password was entered',
+        error: 'Forbidden',
+      });
+
+    return this.userService.update(id, updateUserDto, user);
   }
 
   @Delete(':id')
   @HttpCode(204)
-  remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
-    return this.usersService.remove(id);
+  async remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+    await this.findOne(id);
+    return this.userService.remove(id);
   }
 }
