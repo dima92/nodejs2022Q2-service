@@ -6,7 +6,7 @@ interface InMemoryDBEntity {
 
 export class InMemoryDB<T extends InMemoryDBEntity> {
   private db: T[] = [];
-  private entity: new (data: T) => T;
+  private readonly entity: new (data: T) => T;
 
   constructor(entity: { new (data: T): T }) {
     this.entity = entity;
@@ -31,7 +31,14 @@ export class InMemoryDB<T extends InMemoryDBEntity> {
     return new Promise(async (resolver, reject) => {
       const foundData = this.db.find((data: T) => data.id === id);
 
-      if (!foundData) reject(new NotFoundException());
+      if (!foundData)
+        reject(
+          new NotFoundException({
+            statusCode: 404,
+            message: `${this.entity.name} with this ID was not found`,
+            error: 'Not Found',
+          }),
+        );
 
       resolver(foundData);
     });

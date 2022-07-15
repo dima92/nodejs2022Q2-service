@@ -7,10 +7,10 @@ import { Artist } from './entities/artist.entity';
 
 @Injectable()
 export class ArtistService {
-  private db: InMemoryDB<Artist>;
+  private static db: InMemoryDB<Artist>;
 
   constructor() {
-    this.db = new InMemoryDB<Artist>(Artist);
+    ArtistService.db = new InMemoryDB<Artist>(Artist);
   }
 
   create(createArtistDto: CreateArtistDto) {
@@ -19,15 +19,15 @@ export class ArtistService {
       ...createArtistDto,
     };
 
-    return this.db.create(data);
+    return ArtistService.db.create(data);
   }
 
   findAll() {
-    return this.db.findAll();
+    return ArtistService.db.findAll();
   }
 
   findOne(id: string) {
-    return this.db.findOne(id);
+    return ArtistService.db.findOne(id);
   }
 
   async update(id: string, updateArtistDto: UpdateArtistDto) {
@@ -38,11 +38,11 @@ export class ArtistService {
       ...updateArtistDto,
     };
 
-    return this.db.update(id, data);
+    return ArtistService.db.update(id, data);
   }
 
   async remove(id: string) {
     await this.findOne(id);
-    return this.db.remove(id);
+    return ArtistService.db.remove(id);
   }
 }
