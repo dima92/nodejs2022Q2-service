@@ -5,6 +5,7 @@ import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { Album } from './entities/album.entity';
 import { ArtistService } from '../artist/artist.service';
+import { TrackService } from '../track/track.service';
 
 @Injectable()
 export class AlbumService {
@@ -13,6 +14,8 @@ export class AlbumService {
   constructor(
     @Inject(forwardRef(() => ArtistService))
     private artistService: ArtistService,
+    @Inject(forwardRef(() => TrackService))
+    private trackService: TrackService,
   ) {
     AlbumService.db = new InMemoryDB<Album>(Album);
   }
@@ -22,7 +25,6 @@ export class AlbumService {
       (await this.artistService.findOne(createAlbumDto.artistId));
     const data = {
       id: v4(),
-      artistId: createAlbumDto.artistId ? createAlbumDto.artistId : null,
       ...createAlbumDto,
     };
 
@@ -52,6 +54,14 @@ export class AlbumService {
 
   async remove(id: string) {
     await this.findOne(id);
+    const tracks = await this.trackService.findAll();
+
+    for (const track of tracks) {
+      if (track.albumId !== id) continue;
+
+      await this.trackService.update(track.id, { ...track, albumId: null });
+    }
+
     return AlbumService.db.remove(id);
   }
 }

@@ -6,7 +6,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   private db: InMemoryDB<User>;
 
   constructor() {

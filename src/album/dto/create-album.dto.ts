@@ -2,10 +2,10 @@ import {
   IsNotEmpty,
   IsNumber,
   IsString,
-  isUUID,
   IsUUID,
   ValidateIf,
 } from 'class-validator';
+import { isNull } from 'lodash';
 
 export class CreateAlbumDto {
   @IsString()
@@ -16,7 +16,7 @@ export class CreateAlbumDto {
   @IsNotEmpty()
   year: number;
 
-  @ValidateIf((_, value) => isUUID(value, '4'))
+  @ValidateIf((_, value) => isNull(value))
   @IsUUID('4')
-  artistId?: string | null;
+  artistId: string | null;
 }
