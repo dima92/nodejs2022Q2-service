@@ -1,12 +1,12 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { InMemoryDB } from 'src/db/InMemoryDB';
+import { AlbumService } from '../album/album.service';
+import { InMemoryDB } from '../db/InMemoryDB';
+import { FavoritesService } from '../favorites/favorites.service';
+import { TrackService } from '../track/track.service';
 import { v4 } from 'uuid';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { Artist } from './entities/artist.entity';
-import { AlbumService } from '../album/album.service';
-import { TrackService } from '../track/track.service';
-import { FavoritesService } from '../favorites/favorites.service';
 
 @Injectable()
 export class ArtistService {
@@ -64,7 +64,7 @@ export class ArtistService {
     for (const track of tracks) {
       if (track.artistId !== id) continue;
 
-      await this.albumService.update(track.id, { ...track, artistId: null });
+      await this.trackService.update(track.id, { ...track, artistId: null });
     }
 
     this.favoritesService.removeArtistToFavourites(id);

@@ -16,7 +16,7 @@ export class CreateAlbumDto {
   @IsNotEmpty()
   year: number;
 
-  @ValidateIf((_, value) => isNull(value))
+  @ValidateIf((_, value) => !isNull(value))
   @IsUUID('4')
   artistId: string | null;
 }

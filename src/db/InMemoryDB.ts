@@ -4,7 +4,7 @@ interface InMemoryDBEntity {
 
 export class InMemoryDB<T extends InMemoryDBEntity> {
   private db: T[] = [];
-  private readonly entity: new (data: T) => T;
+  private entity: new (data: T) => T;
 
   constructor(entity: { new (data: T): T }) {
     this.entity = entity;
