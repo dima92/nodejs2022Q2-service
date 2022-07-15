@@ -36,7 +36,7 @@ export class TrackController {
     if (!track)
       throw new NotFoundException({
         statusCode: 404,
-        message: `Artist with this ID was not found`,
+        message: `Track with this ID was not found`,
         error: 'Not Found',
       });
 

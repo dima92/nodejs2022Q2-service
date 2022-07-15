@@ -36,7 +36,7 @@ export class AlbumController {
     if (!album)
       throw new NotFoundException({
         statusCode: 404,
-        message: `Artist with this ID was not found`,
+        message: `Album with this ID was not found`,
         error: 'Not Found',
       });
 
