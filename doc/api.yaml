@@ -842,7 +842,7 @@ paths:
       description: Add artist to the favorites
       responses:
         201:
-          description: Added succesfully
+          description: Added successfully
         400:
           description: Bad request. artistId is invalid (not uuid)
         401:
@@ -856,7 +856,7 @@ paths:
       description: Delete artist from favorites
       responses:
         204:
-          description: Deleted succesfully
+          description: Deleted successfully
         400:
           description: Bad request. artistId is invalid (not uuid)
         401:
