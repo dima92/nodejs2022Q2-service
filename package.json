@@ -40,6 +40,7 @@
     "yaml": "^2.1.1"
   },
   "devDependencies": {
+    "@nestjs/axios": "^0.1.0",
     "@nestjs/cli": "^8.0.0",
     "@nestjs/schematics": "^8.0.0",
     "@nestjs/testing": "^8.0.0",
