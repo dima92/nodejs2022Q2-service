@@ -9,6 +9,8 @@
 
 ```
 git clone {repository URL}
+cd nodejs2022Q2-service
+git checkout dev
 ```
 
 ## Installing NPM modules
