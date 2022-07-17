@@ -1,5 +1,5 @@
 export class Favorite {
-  artists: string[];
-  albums: string[];
-  tracks: string[];
+  artists: Set<string>;
+  albums: Set<string>;
+  tracks: Set<string>;
 }
