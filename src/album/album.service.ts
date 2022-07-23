@@ -5,30 +5,21 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { isNull } from 'lodash';
-import { InMemoryDB } from 'src/db/InMemoryDB';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { Album } from './entities/album.entity';
 import { ArtistService } from '../artist/artist.service';
-import { TrackService } from '../track/track.service';
 import { FavoritesService } from '../favorites/favorites.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AlbumService {
-  private static db: InMemoryDB<Album>;
-
   constructor(
     @Inject(forwardRef(() => ArtistService))
     private artistService: ArtistService,
-    @Inject(forwardRef(() => TrackService))
-    private trackService: TrackService,
     @Inject(forwardRef(() => FavoritesService))
     private favoritesService: FavoritesService,
     private prisma: PrismaService,
-  ) {
-    AlbumService.db = new InMemoryDB<Album>(Album);
-  }
+  ) {}
 
   async create(createAlbumDto: CreateAlbumDto) {
     isNull(createAlbumDto.artistId) && delete createAlbumDto.artistId;
@@ -44,7 +35,10 @@ export class AlbumService {
   }
 
   async findOne(id: string) {
-    const album = await this.prisma.album.findFirst({ where: { id } });
+    const album = await this.prisma.album.findFirst({
+      where: { id },
+      select: { artist: true },
+    });
 
     if (!album)
       throw new NotFoundException({
@@ -64,14 +58,6 @@ export class AlbumService {
   }
 
   async remove(id: string) {
-    const tracks = await this.trackService.findAll();
-
-    for (const track of tracks) {
-      if (track.albumId !== id) continue;
-
-      await this.trackService.update(track.id, { ...track, albumId: null });
-    }
-
     this.favoritesService.removeAlbumToFavourites(id);
     return this.prisma.album.delete({ where: { id } });
   }

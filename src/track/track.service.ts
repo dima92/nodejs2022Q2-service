@@ -4,27 +4,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { AlbumService } from 'src/album/album.service';
-import { ArtistService } from 'src/artist/artist.service';
-import { InMemoryDB } from 'src/db/InMemoryDB';
-import { v4 } from 'uuid';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-import { Track } from './entities/track.entity';
 import { FavoritesService } from '../favorites/favorites.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class TrackService {
-  private static db: InMemoryDB<Track>;
-
   constructor(
     @Inject(forwardRef(() => FavoritesService))
     private favoritesService: FavoritesService,
     private prisma: PrismaService,
-  ) {
-    TrackService.db = new InMemoryDB<Track>(Track);
-  }
+  ) {}
 
   async create(createTrackDto: CreateTrackDto) {
     return this.prisma.track.create({ data: createTrackDto });
