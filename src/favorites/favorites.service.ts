@@ -8,6 +8,7 @@ import { AlbumService } from 'src/album/album.service';
 import { ArtistService } from 'src/artist/artist.service';
 import { TrackService } from 'src/track/track.service';
 import { Favorite } from './entities/favorite.entity';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class FavoritesService {
@@ -24,14 +25,15 @@ export class FavoritesService {
     private albumService: AlbumService,
     @Inject(forwardRef(() => TrackService))
     private trackService: TrackService,
+    private prisma: PrismaService,
   ) {}
 
   async addArtistToFavourites(id: string) {
-    const artist = await this.artistService.findOne(id);
+    const artist = await this.prisma.artist.findFirst({ where: { id } });
 
     if (!artist) throw new UnprocessableEntityException();
 
-    FavoritesService.db.artists.add(id);
+    console.log(await this.prisma.favorite.findMany());
     return { statusCode: 201, message: 'Added successfully' };
   }
 
