@@ -1,44 +1,48 @@
-version: '3.9'
+version: '3'
 services:
   app:
-    container_name: nodejs-service
     build: .
-    ports:
-      - ${PORT}:${PORT}
+    container_name: nodejs_service
     depends_on:
       - postgres
-    volumes:
-      - ./:/app
-      - ignore:/app/node_modules/
+    ports:
+      - ${PORT}:${PORT}
+    env_file: .env
+    environment:
+      - PORT=${PORT}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     networks:
       - postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      POSTGRES_DB: ${POSTGRES_PASSWORD:-rest}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_HOST: postgres
+    volumes:
+      - type: bind
+        source: ./src
+        target: /app/src
+      - /app/node_modules
+    restart: always
 
   postgres:
-    container_name: postgres-container
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      POSTGRES_DB: ${POSTGRES_PASSWORD:-rest}
-      PGDATA: /var/lib/postgresql/data
-    volumes:
-      - postgres:/var/lib/postgresql/data
+    build: ./db/
+    container_name: postgres_container
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     networks:
       - postgres
-    build: ./db/
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    restart: always
 
 networks:
   postgres:
     driver: bridge
 
 volumes:
-  ignore:
   postgres:
