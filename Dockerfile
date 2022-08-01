@@ -15,5 +15,4 @@ COPY --chown=node:node ./.env.example ./.env
 EXPOSE ${PORT}
 
 RUN npx prisma generate
-
 CMD ["npm", "run", "start:dev"]

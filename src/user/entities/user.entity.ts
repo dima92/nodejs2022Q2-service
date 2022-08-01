@@ -11,10 +11,10 @@ export class User {
   version: number;
 
   @Transform(({ value }) => new Date(value).getTime())
-  createdAt: number;
+  createdAt: Date;
 
   @Transform(({ value }) => new Date(value).getTime())
-  updatedAt: number;
+  updatedAt: Date;
 
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);
