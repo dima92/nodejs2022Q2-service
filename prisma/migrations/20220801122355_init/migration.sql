@@ -6,6 +6,7 @@ CREATE TABLE "User" (
     "version" INTEGER NOT NULL DEFAULT 1,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "refreshToken" TEXT,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -14,7 +15,7 @@ CREATE TABLE "User" (
 CREATE TABLE "Artist" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "grammy" BOOLEAN NOT NULL,
+    "grammy" BOOLEAN NOT NULL DEFAULT false,
     "favoriteId" TEXT,
 
     CONSTRAINT "Artist_pkey" PRIMARY KEY ("id")
@@ -35,7 +36,7 @@ CREATE TABLE "Album" (
 CREATE TABLE "Track" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "duration" INTEGER NOT NULL,
+    "duration" INTEGER NOT NULL DEFAULT 0,
     "artistId" TEXT,
     "albumId" TEXT,
     "favoriteId" TEXT,

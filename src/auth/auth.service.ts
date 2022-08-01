@@ -1,74 +1,77 @@
+import { ConfigService } from '@nestjs/config';
 import { UserService } from '../user/user.service';
-import { JwtService } from '@nestjs/jwt';
-import {
-  ForbiddenException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ForbiddenException, HttpStatus, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from '../user/dto/create-user.dto';
-import { User } from '../user/entities/user.entity';
+import { CreateAuthDto } from './dto/create-auth.dto';
+import { LoginAuthDto } from './dto/login-auth.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly userService: UserService,
     private jwtService: JwtService,
+    private userService: UserService,
+    private configService: ConfigService,
   ) {}
 
-  signup = async (createUserDto: CreateUserDto) => {
-    return await this.userService.create(createUserDto);
-  };
+  async create(createAuthDto: CreateAuthDto) {
+    return await this.userService.create(createAuthDto);
+  }
 
-  validateUser = async (login: string, password: string) => {
-    const user = await this.userService.findByLogin(login);
-    if (!user) return null;
+  async login(loginAuthDto: LoginAuthDto) {
+    const user = await this.validateUser(loginAuthDto.login);
+    await this.verifyPassword(loginAuthDto.password, user.password);
+    return await this.getTokens(user.id, loginAuthDto.login);
+  }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return null;
+  async getTokens(id: string, login: string) {
+    const accessToken = this.getAccessToken(id, login);
+    const refreshToken = this.getRefreshToken(id, login);
+    await this.userService.setRefreshToken(id, refreshToken.refreshToken);
 
-    return user;
-  };
+    return {
+      ...accessToken,
+      ...refreshToken,
+    };
+  }
 
-  login = async (user: User) => {
-    const { id, login } = user;
-    const accessToken = await this.jwtService.signAsync(
-      { userId: id, login },
-      {
-        secret: process.env.JWT_SECRET_KEY,
-        expiresIn: process.env.TOKEN_EXPIRE_TIME,
-      },
-    );
-    const refreshToken = await this.jwtService.signAsync(
-      { userId: id, login },
-      {
-        secret: process.env.JWT_SECRET_REFRESH_KEY,
-        expiresIn: process.env.TOKEN_REFRESH_EXPIRE_TIME,
-      },
-    );
-    return { accessToken, refreshToken };
-  };
+  async refresh(id: string, login: string) {
+    return await this.getTokens(id, login);
+  }
 
-  refresh = async (body: { refreshToken: string }) => {
-    const { refreshToken } = body;
-    if (!refreshToken) {
-      throw new UnauthorizedException({
-        statusCode: 401,
-        message: 'No refresh token in body',
-        error: 'Unauthorized',
-      });
-    }
+  getAccessToken(userId: string, login: string) {
+    const payload = { userId, login };
+    const token = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_SECRET_KEY'),
+      expiresIn: `${this.configService.get('TOKEN_EXPIRE_TIME')}`,
+    });
+    return {
+      accessToken: token,
+    };
+  }
 
-    try {
-      const { userId, login } = this.jwtService.verify(refreshToken);
-      const user = new User({ id: userId, login });
-      return await this.login(user);
-    } catch {
+  getRefreshToken(userId: string, login: string) {
+    const payload = { userId, login };
+    const token = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_SECRET_REFRESH_KEY'),
+      expiresIn: `${this.configService.get('TOKEN_REFRESH_EXPIRE_TIME')}`,
+    });
+    return {
+      refreshToken: token,
+    };
+  }
+
+  async verifyPassword(loginPass: string, userPass: string) {
+    const match = await bcrypt.compare(loginPass, userPass);
+    if (!match) {
       throw new ForbiddenException({
-        statusCode: 403,
-        message: 'Refresh token is outdated or invalid',
-        error: 'Forbidden',
+        status: HttpStatus.FORBIDDEN,
+        message: 'Wrong credentials',
       });
     }
-  };
+  }
+
+  async validateUser(login: string) {
+    return await this.userService.findByLogin(login);
+  }
 }
