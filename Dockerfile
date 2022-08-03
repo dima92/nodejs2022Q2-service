@@ -16,6 +16,5 @@ EXPOSE ${PORT}
 
 RUN npx prisma generate
 
-RUN npx prisma migrate deploy
 
 CMD ["npm", "run", "start:dev"]

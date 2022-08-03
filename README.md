@@ -37,12 +37,22 @@ npm install
 ## Running application
 
 ```
-npm run docker
+npm run docker:build
 ```
 
 After starting the app on port (4000 as default) you can open
 in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
 For more information about OpenAPI/Swagger please visit https://swagger.io/.
+
+To pass the tests, first issue the command in the docker
+
+```
+npx prisma migration deploy
+```
+
+```
+npx run test:auth
+```
 
 ---
 
