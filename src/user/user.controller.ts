@@ -8,9 +8,7 @@ import {
   Put,
   ParseUUIDPipe,
   HttpCode,
-  Header,
-  UseInterceptors,
-  ClassSerializerInterceptor,
+  HttpStatus,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -21,29 +19,24 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  @HttpCode(201)
-  @Header('Content-Type', 'application/json')
-  @UseInterceptors(ClassSerializerInterceptor)
+  @HttpCode(HttpStatus.CREATED)
   create(@Body() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
 
   @Get()
-  @Header('Content-Type', 'application/json')
-  @UseInterceptors(ClassSerializerInterceptor)
   findAll() {
     return this.userService.findAll();
   }
 
   @Get(':id')
-  @Header('Content-Type', 'application/json')
-  @UseInterceptors(ClassSerializerInterceptor)
+  @HttpCode(HttpStatus.OK)
   findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.userService.findOne(id);
   }
 
   @Put(':id')
-  @UseInterceptors(ClassSerializerInterceptor)
+  @HttpCode(HttpStatus.OK)
   update(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -52,7 +45,7 @@ export class UserController {
   }
 
   @Delete(':id')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.userService.remove(id);
   }

@@ -11,10 +11,10 @@ export class User {
   version: number;
 
   @Transform(({ value }) => new Date(value).getTime())
-  createdAt: Date;
+  createdAt: number;
 
   @Transform(({ value }) => new Date(value).getTime())
-  updatedAt: Date;
+  updatedAt: number;
 
   @Exclude({ toPlainOnly: true })
   refreshToken?: string;

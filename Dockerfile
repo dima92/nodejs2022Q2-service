@@ -1,18 +1,21 @@
-FROM node:16.16-alpine3.16
+FROM node:lts-alpine
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-COPY package*.json .
+RUN mkdir -p /opt/app
 
-COPY prisma ./prisma
+COPY package*.json ./
 
-RUN npm ci --legacy-peer-deps
+COPY prisma ./prisma/
 
-COPY --chown=node:node . .
+RUN npm install
 
-COPY --chown=node:node ./.env.example ./.env
+COPY . .
 
 EXPOSE ${PORT}
 
 RUN npx prisma generate
+
+RUN npx prisma migrate deploy
+
 CMD ["npm", "run", "start:dev"]

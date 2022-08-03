@@ -1,89 +1,98 @@
 import {
   ForbiddenException,
-  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
 import { PrismaService } from '../prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
+import { v4 } from 'uuid';
+import { InfoForUser, notFound } from '../utils/constants';
+
+const dataWithoutPass = {
+  password: false,
+  id: true,
+  version: true,
+  createdAt: true,
+  updatedAt: true,
+  login: true,
+};
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  data: string;
 
-  async create(createUserDto: CreateUserDto) {
-    const user = await this.prisma.user.create({
+  constructor(private prisma: PrismaService) {
+    this.data = 'user';
+  }
+
+  async create(createUserDto: CreateUserDto): Promise<any> {
+    return await this.prisma.user.create({
       data: {
         ...createUserDto,
-        password: await bcrypt.hash(createUserDto.password, 10),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        id: v4(),
+        version: 1,
       },
+      select: dataWithoutPass,
     });
-
-    return new User(user);
   }
 
   async findAll() {
-    const users = await this.prisma.user.findMany();
-    return users.map((item) => new User(item));
+    return await this.prisma.user.findMany({
+      select: dataWithoutPass,
+    });
   }
 
   async findOne(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user) throw new NotFoundException();
-
-    return new User(user);
-  }
-
-  async findByLogin(login: string) {
-    const user = await this.prisma.user.findFirst({ where: { login } });
-    if (!user) throw new NotFoundException();
-
-    return user;
+    try {
+      return await this.prisma.user.findUniqueOrThrow({
+        where: { id },
+        select: dataWithoutPass,
+      });
+    } catch (e) {
+      throw new NotFoundException(notFound(this.data));
+    }
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const oldUser = await this.prisma.user.findUnique({ where: { id } });
-
-    if (oldUser) {
-      const match = await bcrypt.compare(
-        updateUserDto.oldPassword,
-        oldUser.password,
-      );
-
-      if (!match) {
-        throw new ForbiddenException({
-          status: HttpStatus.FORBIDDEN,
-          message: 'Wrong credentials',
-        });
-      }
+    let oldData;
+    try {
+      oldData = await this.prisma.user.findUniqueOrThrow({
+        where: { id },
+      });
+    } catch {
+      throw new NotFoundException(notFound(this.data));
     }
 
-    const newUser = await this.prisma.user.update({
+    if (oldData.password !== updateUserDto.oldPassword)
+      throw new ForbiddenException(InfoForUser.OLD_PASSWORD_WRONG);
+
+    if (oldData.password === updateUserDto.newPassword)
+      throw new ForbiddenException(InfoForUser.OLD_PASSWORD_WRONG);
+
+    return await this.prisma.user.update({
       where: {
         id,
       },
       data: {
-        password: await bcrypt.hash(updateUserDto.newPassword, 10),
+        password: updateUserDto.newPassword,
         version: { increment: 1 },
+        updatedAt: Date.now(),
       },
+      select: dataWithoutPass,
     });
-
-    return new User(newUser);
   }
 
   async remove(id: string) {
-    return await this.prisma.user.delete({ where: { id } });
-  }
-
-  async setRefreshToken(id: string, token: string) {
-    return await this.prisma.user.update({
-      where: { id },
-      data: {
-        refreshToken: await bcrypt.hash(token, 10),
-      },
-    });
+    try {
+      return await this.prisma.user.delete({
+        where: { id },
+        select: dataWithoutPass,
+      });
+    } catch (e) {
+      throw new NotFoundException(notFound(this.data));
+    }
   }
 }

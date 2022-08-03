@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -14,10 +15,10 @@ model User {
   id           String   @id @default(uuid())
   login        String
   password     String
-  version      Int      @default(1)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  refreshToken String?
+  version      Int      @default(autoincrement())
+  createdAt    Int
+  updatedAt    Int
+  hashedRt     String?
 }
 
 model Artist {
@@ -26,7 +27,7 @@ model Artist {
   grammy     Boolean   @default(false)
   albums     Album[]
   tracks     Track[]
-  favs       Favorite? @relation(fields: [favoriteId], references: [id], onDelete: SetNull)
+  favs       Favorite? @relation(fields: [favoriteId], references: [id])
   favoriteId String?
 }
 
@@ -34,22 +35,22 @@ model Album {
   id         String    @id @default(uuid())
   name       String
   year       Int
-  artist     Artist?   @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  artist     Artist?   @relation(fields: [artistId], references: [id])
   artistId   String?
   tracks     Track[]
-  favs       Favorite? @relation(fields: [favoriteId], references: [id], onDelete: SetNull)
+  favs       Favorite? @relation(fields: [favoriteId], references: [id])
   favoriteId String?
 }
 
 model Track {
   id         String    @id @default(uuid())
   name       String
-  duration   Int       @default(0)
-  artist     Artist?   @relation(fields: [artistId], references: [id], onDelete: SetNull)
+  duration   Int
+  artist     Artist?   @relation(fields: [artistId], references: [id])
   artistId   String?
-  albums     Album?    @relation(fields: [albumId], references: [id], onDelete: SetNull)
+  albums     Album?    @relation(fields: [albumId], references: [id])
   albumId    String?
-  favs       Favorite? @relation(fields: [favoriteId], references: [id], onDelete: SetNull)
+  favs       Favorite? @relation(fields: [favoriteId], references: [id])
   favoriteId String?
 }
 

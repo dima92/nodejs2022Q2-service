@@ -1,47 +1,31 @@
-import { RequestWithUser } from './requestWithUser.interface';
-import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
-import {
-  Controller,
-  Post,
-  Body,
-  Header,
-  UseInterceptors,
-  ClassSerializerInterceptor,
-  HttpCode,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Public } from 'src/utils/decorators';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { LoginAuthDto } from './dto/login-auth.dto';
+import { AuthDto } from './dto';
+import { Tokens } from './types';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private authService: AuthService) {}
 
+  @Public()
   @Post('signup')
-  @HttpCode(201)
-  @Header('Content-Type', 'application/json')
-  @UseInterceptors(ClassSerializerInterceptor)
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  @HttpCode(HttpStatus.CREATED)
+  singup(@Body() dto: AuthDto): Promise<Tokens> {
+    return this.authService.singup(dto);
   }
 
-  @HttpCode(200)
+  @Public()
   @Post('login')
-  @Header('Content-Type', 'application/json')
-  @UseInterceptors(ClassSerializerInterceptor)
-  login(@Body() loginAuthDto: LoginAuthDto, @Req() request: any) {
-    return this.authService.login(loginAuthDto);
+  @HttpCode(HttpStatus.OK)
+  login(@Body() dto: AuthDto): Promise<Tokens> {
+    return this.authService.login(dto);
   }
 
-  @HttpCode(200)
-  @UseGuards(JwtRefreshGuard)
+  @Public()
   @Post('refresh')
-  @Header('Content-Type', 'application/json')
-  @UseInterceptors(ClassSerializerInterceptor)
-  refreshToken(@Req() req: RequestWithUser) {
-    const user = req.user;
-    return this.authService.getTokens(user.id, user.login);
+  @HttpCode(HttpStatus.OK)
+  async refreshTokens(@Body() { refreshToken }): Promise<Tokens> {
+    return this.authService.getRefreshTokens(refreshToken);
   }
 }
