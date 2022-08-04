@@ -7,9 +7,10 @@ import { TrackModule } from './track/track.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './utils/guards';
-import { LoggingService } from "./utils/logging.service";
+import { LoggingMiddleware } from './utils/logging.middleware';
+import { HttpExceptionFilter } from './utils/exception.filter';
 
 @Module({
   imports: [
@@ -24,10 +25,13 @@ import { LoggingService } from "./utils/logging.service";
     PrismaModule,
     AuthModule,
   ],
-  providers: [{ provide: APP_GUARD, useClass: AtGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: AtGuard },
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): any {
-    consumer.apply(LoggingService).forRoutes('*');
+    consumer.apply(LoggingMiddleware).forRoutes('*');
   }
 }
