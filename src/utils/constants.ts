@@ -17,3 +17,11 @@ export enum Env {
 
 export const notFound = (type: string) =>
   `${type[0].toUpperCase() + type.slice(1)} not found`;
+
+export const LOG_LEVELS = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  debug: 3,
+  verbose: 4,
+};

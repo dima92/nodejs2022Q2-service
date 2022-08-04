@@ -3,6 +3,8 @@ import { Request, Response, NextFunction } from 'express';
 
 @Injectable()
 export class LoggingService implements NestMiddleware {
+  constructor(string: string) {}
+
   private logger = new Logger('http');
 
   use(req: Request, res: Response, next: NextFunction): void {
@@ -20,4 +22,6 @@ export class LoggingService implements NestMiddleware {
 
     next();
   }
+
+  error(message: string, stack: string) {}
 }
