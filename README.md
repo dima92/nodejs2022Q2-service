@@ -33,6 +33,25 @@ npm install
 ```
 .env.example -> .env
 ```
+## .env
+
+```
+PORT=4000
+
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=123
+POSTGRES_DB=nestjs
+
+CRYPT_SALT=10
+JWT_SECRET_KEY=secret123123
+JWT_SECRET_REFRESH_KEY=secret123123
+TOKEN_EXPIRE_TIME=1h
+TOKEN_REFRESH_EXPIRE_TIME=24h
+LOG_LEVEL=2
+FILE_MAX_SIZE=1000
+
+DATABASE_URL="postgresql://postgres:123@postgres:5432/nestjs?schema=public&connect_timeout=300"
+```
 
 ## Running application
 
