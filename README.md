@@ -47,7 +47,7 @@ For more information about OpenAPI/Swagger please visit https://swagger.io/.
 To pass the tests, first issue the command in the docker
 
 ```
-npx prisma migration deploy
+npx prisma migrate deploy
 ```
 
 ```
