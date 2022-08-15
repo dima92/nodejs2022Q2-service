@@ -1,58 +1,52 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { AlbumService } from 'src/album/album.service';
-import { ArtistService } from 'src/artist/artist.service';
-import { InMemoryDB } from 'src/db/InMemoryDB';
-import { v4 } from 'uuid';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-import { Track } from './entities/track.entity';
 import { FavoritesService } from '../favorites/favorites.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class TrackService {
-  private static db: InMemoryDB<Track>;
-
   constructor(
-    @Inject(forwardRef(() => ArtistService))
-    private artistService: ArtistService,
-    @Inject(forwardRef(() => AlbumService))
-    private albumService: AlbumService,
     @Inject(forwardRef(() => FavoritesService))
     private favoritesService: FavoritesService,
-  ) {
-    TrackService.db = new InMemoryDB<Track>(Track);
-  }
+    private prisma: PrismaService,
+  ) {}
 
   async create(createTrackDto: CreateTrackDto) {
-    const data = {
-      id: v4(),
-      ...createTrackDto,
-    };
-
-    return TrackService.db.create(data);
+    return this.prisma.track.create({ data: createTrackDto });
   }
 
   async findAll() {
-    return TrackService.db.findAll();
+    return this.prisma.track.findMany();
   }
 
   async findOne(id: string) {
-    return TrackService.db.findOne(id);
+    const track = await this.prisma.track.findFirst({ where: { id } });
+
+    if (!track)
+      throw new NotFoundException({
+        statusCode: 404,
+        message: `Track with this ID was not found`,
+        error: 'Not Found',
+      });
+
+    return track;
   }
 
   async update(id: string, updateTrackDto: UpdateTrackDto) {
-    const track = await this.findOne(id);
-
-    const data = {
-      ...track,
-      ...updateTrackDto,
-    };
-
-    return TrackService.db.update(id, data);
+    return this.prisma.track.update({
+      where: { id },
+      data: { ...updateTrackDto },
+    });
   }
 
   async remove(id: string) {
     this.favoritesService.removeTrackToFavourites(id);
-    return TrackService.db.remove(id);
+    return this.prisma.track.delete({ where: { id } });
   }
 }

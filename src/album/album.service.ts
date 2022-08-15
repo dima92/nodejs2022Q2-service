@@ -1,66 +1,64 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { InMemoryDB } from 'src/db/InMemoryDB';
-import { v4 } from 'uuid';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { isNull } from 'lodash';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { Album } from './entities/album.entity';
 import { ArtistService } from '../artist/artist.service';
-import { TrackService } from '../track/track.service';
 import { FavoritesService } from '../favorites/favorites.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AlbumService {
-  private static db: InMemoryDB<Album>;
-
   constructor(
     @Inject(forwardRef(() => ArtistService))
     private artistService: ArtistService,
-    @Inject(forwardRef(() => TrackService))
-    private trackService: TrackService,
     @Inject(forwardRef(() => FavoritesService))
     private favoritesService: FavoritesService,
-  ) {
-    AlbumService.db = new InMemoryDB<Album>(Album);
-  }
+    private prisma: PrismaService,
+  ) {}
 
   async create(createAlbumDto: CreateAlbumDto) {
-    const data = {
-      id: v4(),
-      ...createAlbumDto,
-    };
-
-    return AlbumService.db.create(data);
+    isNull(createAlbumDto.artistId) && delete createAlbumDto.artistId;
+    return this.prisma.album.create({
+      data: {
+        ...createAlbumDto,
+      },
+    });
   }
 
   async findAll() {
-    return AlbumService.db.findAll();
+    return this.prisma.album.findMany();
   }
 
   async findOne(id: string) {
-    return AlbumService.db.findOne(id);
+    const album = await this.prisma.album.findFirst({
+      where: { id },
+      select: { artist: true },
+    });
+
+    if (!album)
+      throw new NotFoundException({
+        statusCode: 404,
+        message: `Album with this ID was not found`,
+        error: 'Not Found',
+      });
+
+    return album;
   }
 
   async update(id: string, updateAlbumDto: UpdateAlbumDto) {
-    const album = await this.findOne(id);
-
-    const data = {
-      ...album,
-      ...updateAlbumDto,
-    };
-
-    return AlbumService.db.update(id, data);
+    return this.prisma.album.update({
+      where: { id },
+      data: { ...updateAlbumDto },
+    });
   }
 
   async remove(id: string) {
-    const tracks = await this.trackService.findAll();
-
-    for (const track of tracks) {
-      if (track.albumId !== id) continue;
-
-      await this.trackService.update(track.id, { ...track, albumId: null });
-    }
-
     this.favoritesService.removeAlbumToFavourites(id);
-    return AlbumService.db.remove(id);
+    return this.prisma.album.delete({ where: { id } });
   }
 }

@@ -1,5 +1,10 @@
 # Home Library Service
 
+> Let's try to create a Home Library Service! `Users` can create, read, update, delete data about `Artists`, `Tracks`
+> and `Albums`, add them to `Favorites` in their own Home Library!
+
+---
+
 ## Prerequisites
 
 - Git - [Download & Install Git](https://git-scm.com/downloads).
@@ -8,9 +13,13 @@
 ## Downloading
 
 ```
-git clone {repository URL}
+git clone https://github.com/dima92/nodejs2022Q2-service
+```
+
+## Go to project root directory
+
+```
 cd nodejs2022Q2-service
-git checkout dev
 ```
 
 ## Installing NPM modules
@@ -19,15 +28,39 @@ git checkout dev
 npm install
 ```
 
+## Change name file
+
+```
+.env.example -> .env
+```
+
 ## Running application
 
 ```
-npm start
+npm run docker
 ```
 
 After starting the app on port (4000 as default) you can open
 in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
 For more information about OpenAPI/Swagger please visit https://swagger.io/.
+
+---
+
+## Docker scan
+
+For scan service
+
+```
+npm run docker:scan:app
+```
+
+For scan db
+
+```
+npm run docker:scan:db
+```
+
+---
 
 ## Testing
 
@@ -72,3 +105,25 @@ npm run format
 Press <kbd>F5</kbd> to debug.
 
 For more information, visit: https://code.visualstudio.com/docs/editor/debugging
+
+---
+
+## Used technologies:
+
+- TypeScript
+- docker
+- nestjs
+- swagger
+- class-validator
+- uuid
+- dotenv
+- jest
+- eslint
+- prettier
+- node.js version: 16 LTS
+
+---
+
+## Authors:
+
+_[Dmitry Tkachenko](https://github.com/dima92)_
