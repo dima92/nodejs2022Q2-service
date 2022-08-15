@@ -1,44 +1,35 @@
-version: '3.9'
 services:
   app:
-    container_name: nodejs-service
-    build: .
+    container_name: nodejs_service
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    command: npm run start:dev
     ports:
-      - ${PORT}:${PORT}
+      - 4000:4000
+    environment:
+      DATABASE_URL: postgresql://postgres:123@postgres:5432/nestjs?schema=public&connect_timeout=300
     depends_on:
       - postgres
     volumes:
-      - ./:/app
-      - ignore:/app/node_modules/
-    networks:
-      - postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      POSTGRES_DB: ${POSTGRES_PASSWORD:-rest}
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_HOST: postgres
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
 
   postgres:
-    container_name: postgres-container
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-      POSTGRES_DB: ${POSTGRES_PASSWORD:-rest}
-      PGDATA: /var/lib/postgresql/data
-    volumes:
-      - postgres:/var/lib/postgresql/data
+    container_name: postgres_container
+    build:
+      context: .
+      dockerfile: ./db/Dockerfile
+    restart: unless-stopped
     ports:
-      - ${POSTGRES_PORT}:${POSTGRES_PORT}
-    networks:
-      - postgres
-    build: ./db/
-
-networks:
-  postgres:
-    driver: bridge
-
-volumes:
-  ignore:
-  postgres:
+      - 5432:5432
+    env_file: .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - /var/lib/postgresql/data

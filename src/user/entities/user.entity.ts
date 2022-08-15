@@ -5,7 +5,7 @@ export class User {
 
   login: string;
 
-  @Exclude()
+  @Exclude({ toPlainOnly: true })
   password: string;
 
   version: number;
@@ -15,6 +15,9 @@ export class User {
 
   @Transform(({ value }) => new Date(value).getTime())
   updatedAt: number;
+
+  @Exclude({ toPlainOnly: true })
+  refreshToken?: string;
 
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);
